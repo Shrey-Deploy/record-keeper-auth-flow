@@ -1,6 +1,5 @@
-
 import React, { useState, useEffect } from 'react';
-import { useNavig ate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { recordService } from '@/services/recordService';
 import { Record } from '@/types/record';
