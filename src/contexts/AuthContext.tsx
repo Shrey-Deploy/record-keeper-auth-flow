@@ -48,8 +48,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setIsLoading(true);
     
     try {
-      // Mock API call - replace with actual API
-      const response = await fetch('/auth/login', {
+      const response = await fetch('http://localhost:3000/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password }),
@@ -61,28 +60,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       const data = await response.json();
       
-      // Store user and token in session storage
       const userData = { 
-        id: data.user.id || `user_${Date.now()}`, 
-        username: data.user.username || username, 
-        role: data.user.role || 'VA' 
+        id: data.user.id, 
+        username: data.user.username, 
+        role: data.user.role 
       };
       
       sessionStorage.setItem('user', JSON.stringify(userData));
-      sessionStorage.setItem('token', data.access_token || 'mock_token');
+      sessionStorage.setItem('token', data.access_token);
       setUser(userData);
     } catch (error) {
-      // For demo purposes, create a mock login
-      console.log('Using mock login for demo');
-      const userData = { 
-        id: `user_${Date.now()}`, 
-        username, 
-        role: 'Admin' as const 
-      };
-      
-      sessionStorage.setItem('user', JSON.stringify(userData));
-      sessionStorage.setItem('token', 'mock_token_' + Date.now());
-      setUser(userData);
+      console.error('Login error:', error);
+      throw error;
     } finally {
       setIsLoading(false);
     }
@@ -92,35 +81,30 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setIsLoading(true);
     
     try {
-      const response = await fetch('/auth/register', {
+      const response = await fetch('http://localhost:3000/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password, role }),
       });
 
       if (!response.ok) {
-        throw new Error('Registration failed');
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Registration failed');
       }
 
       const data = await response.json();
       
       const userData = { 
-        id: data.id || `user_${Date.now()}`, 
-        username: data.username || username, 
-        role: data.role || role 
+        id: data.id, 
+        username: data.username, 
+        role: data.role 
       };
       
-      sessionStorage.setItem('user', JSON.stringify(userData));
-      sessionStorage.setItem('token', 'mock_token_' + Date.now());
-      setUser(userData);
+      // Auto-login after successful registration
+      await login(username, password);
     } catch (error) {
-      // For demo purposes, create a mock registration
-      console.log('Using mock registration for demo');
-      const userData = { id: `user_${Date.now()}`, username, role };
-      
-      sessionStorage.setItem('user', JSON.stringify(userData));
-      sessionStorage.setItem('token', 'mock_token_' + Date.now());
-      setUser(userData);
+      console.error('Registration error:', error);
+      throw error;
     } finally {
       setIsLoading(false);
     }
